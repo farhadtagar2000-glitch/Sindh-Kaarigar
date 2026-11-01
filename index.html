@@ -11,34 +11,34 @@
   header h1 { margin: 0; font-size: 22px; }
   header p { margin: 6px 0 0; font-size: 14px; opacity: 0.9; }
   .container { max-width: 620px; margin: 0 auto; padding: 16px; }
-  .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
   .card h2 { margin: 0 0 12px; font-size: 18px; color: #1f6f5c; }
   label { display: block; margin: 10px 0 4px; font-weight: bold; font-size: 14px; }
-  input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: #fff; }
+  input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
   textarea { min-height: 70px; resize: vertical; }
   .checks { display: flex; gap: 16px; margin-top: 8px; font-size: 14px; }
   .checks label { font-weight: normal; margin: 0; }
   .checks input { width: auto; }
-  button { background: #1f6f5c; color: #fff; border: none; padding: 12px; border-radius: 6px; font-size: 15px; width: 100%; margin-top: 14px; cursor: pointer; }
-  button.small { width: auto; padding: 6px 10px; font-size: 13px; margin-top: 0; background: #888; }
+  button { background: #1f6f5c; color: #fff; border: none; padding: 12px; border-radius: 6px; width: 100%; font-size: 16px; margin-top: 14px; }
+  button.small { width: auto; padding: 6px 10px; font-size: 13px; margin-top: 0; }
+  button.report { background: #b03a2e; }
+  button.edit { background: #2c3e9a; }
   .filters { display: flex; gap: 8px; flex-wrap: wrap; }
   .filters select { flex: 1; min-width: 140px; }
   .profile { border-bottom: 1px solid #eee; padding: 12px 0; }
   .profile:last-child { border-bottom: none; }
   .profile h3 { margin: 0 0 4px; font-size: 16px; }
   .profile p { margin: 3px 0; font-size: 14px; }
-  .tag { display: inline-block; font-size: 12px; padding: 3px 8px; border-radius: 12px; margin-top: 4px; }
+  .tag { display: inline-block; font-size: 12px; padding: 3px 8px; border-radius: 12px; margin: 6px 4px 0 0; }
   .tag.unverified { background: #fde8c8; color: #8a5300; }
   .tag.category { background: #e0f2ec; color: #1f6f5c; }
   .tag.city { background: #e4e9fb; color: #2c3e9a; }
   .tag.outside { background: #f3e5f5; color: #6a1b9a; }
   .tag.inside { background: #e8f5e9; color: #2e7d32; }
   .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .actions a, .actions button.small { text-decoration: none; color: #fff; background: #1f6f5c; padding: 6px 10px; border-radius: 6px; font-size: 13px; width: auto; margin-top: 0; display: inline-block; }
-  .actions button.small.report { background: #b03a2e; }
-  .actions button.small.edit { background: #2c3e9a; }
+  .actions a { text-decoration: none; color: #fff; background: #1f6f5c; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
   .empty { color: #777; font-size: 14px; text-align: center; padding: 12px; }
-  .editbox { background: #f9fbfa; border: 1px solid #cfe3dc; border-radius: 8px; padding: 12px; margin-top: 8px; }
+  #msg { font-size: 14px; color: #b03a2e; margin: 10px 0 0; min-height: 18px; }
 </style>
 </head>
 <body>
@@ -50,15 +50,14 @@
 
 <div class="container">
 
-  <!-- REGISTRATION -->
   <div class="card">
     <h2>Apni profile register karein</h2>
 
     <label for="name">Naam</label>
-    <input type="text" id="name" placeholder="Apna naam likhein">
+    <input id="name" placeholder="Apna naam likhein">
 
     <label for="phone">Phone number</label>
-    <input type="tel" id="phone" placeholder="03XX-XXXXXXX">
+    <input id="phone" type="tel" placeholder="03XX-XXXXXXX">
 
     <label for="type">Aap kya kaam karte hain?</label>
     <select id="type"></select>
@@ -75,18 +74,18 @@
     </div>
 
     <label for="vehicle">Gaari ka naam aur model (sirf driver ke liye)</label>
-    <input type="text" id="vehicle" placeholder="Jaise Toyota Corolla 2018">
+    <input id="vehicle" placeholder="Jaise Toyota Corolla 2018">
 
     <label for="rate">Rate (sirf driver ke liye)</label>
-    <input type="text" id="rate" placeholder="Jaise 15000 per day, ya 8000 jaana">
+    <input id="rate" placeholder="Jaise 15000 per day, ya 8000 jaana">
 
     <label for="desc">Thodi si tafseel (driver ho to kahan se kahan tak likhein)</label>
     <textarea id="desc" placeholder="Apne kaam ke bare mein likhein"></textarea>
 
-    <button onclick="addProfile()">Register karein</button>
+    <button id="saveBtn">Register karein</button>
+    <p id="msg"></p>
   </div>
 
-  <!-- SEARCH -->
   <div class="card">
     <h2>Kaarigar dhoondhein</h2>
     <div class="filters">
@@ -95,7 +94,6 @@
     </div>
   </div>
 
-  <!-- LIST -->
   <div class="card">
     <h2>Register shuda log</h2>
     <div id="list"></div>
@@ -103,323 +101,164 @@
 
 </div>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ===== Firebase config: yahan apni values (quotes ke andar) daalein =====
+  const firebaseConfig = {
+    apiKey: "PASTE_APIKEY_YAHAN",
+    authDomain: "PASTE_AUTHDOMAIN_YAHAN",
+    projectId: "PASTE_PROJECTID_YAHAN",
+    storageBucket: "PASTE_STORAGEBUCKET_YAHAN",
+    messagingSenderId: "PASTE_SENDERID_YAHAN",
+    appId: "PASTE_APPID_YAHAN"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
   const categories = [
-    "Bijli (Electrician)",
-    "Plumber",
-    "Mistri (Ghar Banane Wala)",
-    "Mazdoor (Har Tarah Ka Kaam)",
-    "Painter (Rang Ka Kaam)",
-    "Carpenter (Lakdi Ka Kaam)",
-    "AC Technician",
-    "Printer Aur Computer",
-    "Maali (Gardener)",
-    "Bhangi / Cleaner (Safai Wala)",
-    "Welder (Welding)",
-    "Tile Aur Marble",
-    "Chowkidar Aur Security Guard",
-    "Mechanic",
-    "Driver (Inside City Aur Outside City)"
+    "Bijli (Electrician)", "Plumber", "Mistri (Ghar Banane Wala)", "Mazdoor (Har Tarah Ka Kaam)",
+    "Painter (Rang Ka Kaam)", "Carpenter (Lakdi Ka Kaam)", "AC Technician", "Printer Aur Computer",
+    "Maali (Gardener)", "Bhangi / Cleaner (Safai Wala)", "Welder (Welding)", "Tile Aur Marble",
+    "Chowkidar Aur Security Guard", "Mechanic", "Driver (Inside City Aur Outside City)"
   ];
-
   const DRIVER_CATEGORY = "Driver (Inside City Aur Outside City)";
-
   const cities = [
-    "Kashmore",
-    "Kandhkot",
-    "Shahdadkot",
-    "Jacobabad",
-    "Shikarpur",
-    "Ghotki",
-    "Khairpur Mirs",
-    "Pir Jo Goth",
-    "Khairpur Nathan Shah",
-    "Sukkur",
-    "Larkana",
-    "Dadu",
-    "Sehwan",
-    "Jamshoro",
-    "Kotri",
-    "Hala",
-    "Tando Allahyar",
-    "Tando Adam",
-    "Hyderabad",
-    "Badin",
-    "Thatta",
-    "Umerkot",
-    "Mirpurkhas",
-    "Nawabshah (Shaheed Benazirabad)",
-    "Karachi",
-    "Sindh ke baaqi gaon"
+    "Kashmore","Kandhkot","Shahdadkot","Jacobabad","Shikarpur","Ghotki","Khairpur Mirs","Pir Jo Goth",
+    "Khairpur Nathan Shah","Sukkur","Larkana","Dadu","Sehwan","Jamshoro","Kotri","Hala","Tando Allahyar",
+    "Tando Adam","Hyderabad","Badin","Thatta","Umerkot","Mirpurkhas","Nawabshah (Shaheed Benazirabad)",
+    "Karachi","Sindh ke baaqi gaon"
   ];
 
-  const storageKey = "sindhKaarigarProfiles";
   let profiles = [];
-  let editingIndex = -1;
+  let editingId = null;
+  const COLL = "profiles";
 
   function fillSelect(id, items, allLabel) {
     const sel = document.getElementById(id);
     sel.innerHTML = "";
     if (allLabel) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = allLabel;
-      sel.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = ""; o.textContent = allLabel;
+      sel.appendChild(o);
     }
-    items.forEach(function (item) {
-      const opt = document.createElement("option");
-      opt.value = item;
-      opt.textContent = item;
-      sel.appendChild(opt);
+    items.forEach(t => {
+      const o = document.createElement("option");
+      o.value = t; o.textContent = t;
+      sel.appendChild(o);
     });
   }
 
-  function loadProfiles() {
+  fillSelect("type", categories);
+  fillSelect("city", cities);
+  fillSelect("filterType", categories, "Sab kaam");
+  fillSelect("filterCity", cities, "Sab sheher");
+
+  function normPhone(p) { return (p || "").replace(/[^0-9+]/g, ""); }
+
+  function isDriver() { return document.getElementById("type").value === DRIVER_CATEGORY; }
+
+  function toggleDriverBox() {
+    const show = isDriver();
+    document.getElementById("driverBox").style.display = show ? "block" : "none";
+    document.getElementById("vehicle").parentElement; // no-op
+  }
+  document.getElementById("type").onchange = toggleDriverBox;
+
+  async function loadProfiles() {
     try {
-      profiles = JSON.parse(localStorage.getItem(storageKey)) || [];
+      const snap = await getDocs(collection(db, COLL));
+      profiles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      profiles.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      renderList();
     } catch (e) {
-      profiles = [];
+      document.getElementById("list").textContent = "Profiles load nahi hui: " + e.message;
     }
   }
 
-  function saveProfiles() {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(profiles));
-    } catch (e) {}
-  }
-
-  function normPhone(p) {
-    return p.replace(/[^0-9]/g, "");
-  }
-
-  function toggleDriverBox() {
-    const isDriver = document.getElementById("type").value === DRIVER_CATEGORY;
-    document.getElementById("driverBox").style.display = isDriver ? "block" : "none";
-  }
-
-  function readForm(prefix) {
-    const isDriver = document.getElementById(prefix + "type").value === DRIVER_CATEGORY;
+  function readForm() {
+    const type = document.getElementById("type").value;
+    const driver = type === DRIVER_CATEGORY;
     return {
-      name: document.getElementById(prefix + "name").value.trim(),
-      phone: document.getElementById(prefix + "phone").value.trim(),
-      type: document.getElementById(prefix + "type").value,
-      city: document.getElementById(prefix + "city").value,
-      insideCity: isDriver && document.getElementById(prefix + "inside").checked,
-      outsideCity: isDriver && document.getElementById(prefix + "outside").checked,
-      vehicle: document.getElementById(prefix + "vehicle").value.trim(),
-      rate: document.getElementById(prefix + "rate").value.trim(),
-      desc: document.getElementById(prefix + "desc").value.trim()
+      name: document.getElementById("name").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      type,
+      city: document.getElementById("city").value,
+      insideCity: driver && document.getElementById("insideCity").checked,
+      outsideCity: driver && document.getElementById("outsideCity").checked,
+      vehicle: driver ? document.getElementById("vehicle").value.trim() : "",
+      rate: driver ? document.getElementById("rate").value.trim() : "",
+      desc: document.getElementById("desc").value.trim()
     };
   }
 
-  function addProfile() {
-    const data = readForm("");
-    if (!data.name || !data.phone) {
-      alert("Naam aur phone number zaroori hain.");
-      return;
-    }
-    if (!data.city) {
-      alert("Apna sheher chunna zaroori hai.");
-      return;
-    }
+  function clearForm() {
+    ["name","phone","vehicle","rate","desc"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("insideCity").checked = false;
+    document.getElementById("outsideCity").checked = false;
+    toggleDriverBox();
+  }
+
+  async function addProfile() {
+    const msg = document.getElementById("msg");
+    const data = readForm();
+    if (!data.name || !data.phone) { msg.textContent = "Naam aur phone number zaroori hain."; return; }
+    if (!data.city) { msg.textContent = "Apna sheher chunna zaroori hai."; return; }
     if (data.type === DRIVER_CATEGORY && !data.insideCity && !data.outsideCity) {
-      alert("Driver ke liye Inside City ya Outside City, kam se kam ek tick karein.");
-      return;
+      msg.textContent = "Driver ke liye Inside City ya Outside City, kam se kam ek tick karein."; return;
     }
-    const dup = profiles.some(function (p) {
-      return normPhone(p.phone) === normPhone(data.phone) && p.name.toLowerCase() === data.name.toLowerCase();
-    });
-    if (dup) {
-      alert("Ye profile pehle se register hai.");
-      return;
+    const dup = profiles.some(p => normPhone(p.phone) === normPhone(data.phone) && p.name.toLowerCase() === data.name.toLowerCase());
+    if (dup) { msg.textContent = "Ye profile pehle se register hai."; return; }
+
+    try {
+      await addDoc(collection(db, COLL), { ...data, verified: false, reports: 0, createdAt: Date.now() });
+      msg.style.color = "#1f6f5c";
+      msg.textContent = "Profile register ho gayi. Abhi ye 'Verified nahi' hai.";
+      clearForm();
+      loadProfiles();
+    } catch (e) {
+      msg.style.color = "#b03a2e";
+      msg.textContent = "Error: " + e.message;
     }
-
-    data.verified = false;
-    data.reports = 0;
-    profiles.push(data);
-    saveProfiles();
-    clearForm("");
-    renderList();
-    alert("Profile register ho gayi. Abhi ye 'Verified nahi' hai.");
   }
 
-  function clearForm(prefix) {
-    ["name", "phone", "vehicle", "rate", "desc"].forEach(function (id) {
-      document.getElementById(prefix + id).value = "";
-    });
-    document.getElementById(prefix + "inside").checked = false;
-    document.getElementById(prefix + "outside").checked = false;
-  }
-
-  function startEdit(index) {
-    editingIndex = index;
-    renderList();
-  }
-
-  function cancelEdit() {
-    editingIndex = -1;
-    renderList();
-  }
-
-  function saveEdit(index) {
-    const data = readForm("e" + index + "_");
-    if (!data.name || !data.phone || !data.city) {
-      alert("Naam, phone aur sheher zaroori hain.");
-      return;
-    }
-    if (data.type === DRIVER_CATEGORY && !data.insideCity && !data.outsideCity) {
-      alert("Driver ke liye Inside City ya Outside City, kam se kam ek tick karein.");
-      return;
-    }
-    profiles[index] = Object.assign({}, profiles[index], data);
-    saveProfiles();
-    editingIndex = -1;
-    renderList();
-  }
-
-  function reportProfile(index) {
+  async function reportProfile(id) {
     const reason = prompt("Report ki wajah likhein:");
-    if (reason && reason.trim()) {
-      profiles[index].reports = (profiles[index].reports || 0) + 1;
-      saveProfiles();
+    if (!reason || !reason.trim()) return;
+    try {
+      await updateDoc(doc(db, COLL, id), { reports: increment(1) });
       alert("Shukriya, report darj ho gayi.");
-      renderList();
-    }
-  }
-
-  function buildEditForm(p, index) {
-    const wrap = document.createElement("div");
-    wrap.className = "editbox";
-    const pre = "e" + index + "_";
-
-    const fields = [
-      ["Naam", "name", "text", p.name],
-      ["Phone number", "phone", "tel", p.phone],
-      ["Gaari ka naam aur model", "vehicle", "text", p.vehicle],
-      ["Rate", "rate", "text", p.rate],
-      ["Tafseel", "desc", "textarea", p.desc]
-    ];
-
-    fields.forEach(function (f) {
-      const lab = document.createElement("label");
-      lab.textContent = f[0];
-      lab.htmlFor = pre + f[1];
-      wrap.appendChild(lab);
-      const el = document.createElement(f[2] === "textarea" ? "textarea" : "input");
-      el.id = pre + f[1];
-      if (f[2] !== "textarea") el.type = f[2];
-      el.value = f[3] || "";
-      wrap.appendChild(el);
-    });
-
-    const lt = document.createElement("label");
-    lt.textContent = "Kaam ki category";
-    wrap.appendChild(lt);
-    const selType = document.createElement("select");
-    selType.id = pre + "type";
-    categories.forEach(function (c) {
-      const o = document.createElement("option");
-      o.value = c; o.textContent = c;
-      if (c === p.type) o.selected = true;
-      selType.appendChild(o);
-    });
-    wrap.appendChild(selType);
-
-    const lc = document.createElement("label");
-    lc.textContent = "Sheher";
-    wrap.appendChild(lc);
-    const selCity = document.createElement("select");
-    selCity.id = pre + "city";
-    cities.forEach(function (c) {
-      const o = document.createElement("option");
-      o.value = c; o.textContent = c;
-      if (c === p.city) o.selected = true;
-      selCity.appendChild(o);
-    });
-    wrap.appendChild(selCity);
-
-    const dBox = document.createElement("div");
-    dBox.className = "checks";
-    dBox.innerHTML =
-      '<label><input type="checkbox" id="' + pre + 'inside"' + (p.insideCity ? " checked" : "") + '> Inside City</label>' +
-      '<label><input type="checkbox" id="' + pre + 'outside"' + (p.outsideCity ? " checked" : "") + '> Outside City</label>';
-    wrap.appendChild(dBox);
-
-    const btnRow = document.createElement("div");
-    btnRow.className = "actions";
-    const save = document.createElement("button");
-    save.className = "small";
-    save.textContent = "Save";
-    save.onclick = function () { saveEdit(index); };
-    const cancel = document.createElement("button");
-    cancel.className = "small";
-    cancel.textContent = "Cancel";
-    cancel.onclick = cancelEdit;
-    btnRow.appendChild(save);
-    btnRow.appendChild(cancel);
-    wrap.appendChild(btnRow);
-
-    return wrap;
+      loadProfiles();
+    } catch (e) { alert("Error: " + e.message); }
   }
 
   function renderList() {
-    const filterType = document.getElementById("filterType").value;
-    const filterCity = document.getElementById("filterCity").value;
+    const fType = document.getElementById("filterType").value;
+    const fCity = document.getElementById("filterCity").value;
     const list = document.getElementById("list");
     list.innerHTML = "";
 
-    const shown = profiles
-      .map(function (p, i) { return { p: p, i: i }; })
-      .filter(function (x) {
-        const p = x.p;
-        if (filterType) {
-          if (filterType === DRIVER_CATEGORY) {
-            if (p.type !== DRIVER_CATEGORY) return false;
-          } else if (p.type !== filterType) {
-            return false;
-          }
-        }
-        if (filterCity) {
-          if (p.type === DRIVER_CATEGORY) {
-            // Driver: sheher se match ho, ya outside wala wo bhi dikhe
-            const cityMatch = p.city === filterCity && p.insideCity;
-            const outsideMatch = p.outsideCity;
-            if (!cityMatch && !outsideMatch) return false;
-          } else if (p.city !== filterCity) {
-            return false;
-          }
-        }
-        return true;
-      });
-
-    if (shown.length === 0) {
-      list.innerHTML = '<div class="empty">Abhi koi profile nahi mili.</div>';
+    const items = profiles.filter(p => (!fType || p.type === fType) && (!fCity || p.city === fCity));
+    if (!items.length) {
+      const e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "Abhi koi profile nahi mili.";
+      list.appendChild(e);
       return;
     }
 
-    shown.forEach(function (x) {
-      const p = x.p;
-      const i = x.i;
+    items.forEach(p => {
       const div = document.createElement("div");
       div.className = "profile";
-
-      if (editingIndex === i) {
-        const h = document.createElement("h3");
-        h.textContent = "Profile edit karein";
-        div.appendChild(h);
-        div.appendChild(buildEditForm(p, i));
-        list.appendChild(div);
-        return;
-      }
 
       const h3 = document.createElement("h3");
       h3.textContent = p.name;
       div.appendChild(h3);
 
       const tags = document.createElement("div");
-      let tagHtml =
-        (p.type ? '<span class="tag category">' + p.type + '</span> ' : '') +
-        (p.city ? '<span class="tag city">' + p.city + '</span> ' : '');
+      let tagHtml = '<span class="tag category">' + p.type + '</span> <span class="tag city">' + p.city + '</span> ';
       if (p.type === DRIVER_CATEGORY) {
         if (p.insideCity) tagHtml += '<span class="tag inside">Inside City</span> ';
         if (p.outsideCity) tagHtml += '<span class="tag outside">Outside City</span> ';
@@ -432,21 +271,9 @@
       info.textContent = "Phone: " + p.phone;
       div.appendChild(info);
 
-      if (p.vehicle) {
-        const v = document.createElement("p");
-        v.textContent = "Gaari: " + p.vehicle;
-        div.appendChild(v);
-      }
-      if (p.rate) {
-        const r = document.createElement("p");
-        r.textContent = "Rate: " + p.rate;
-        div.appendChild(r);
-      }
-      if (p.desc) {
-        const d = document.createElement("p");
-        d.textContent = p.desc;
-        div.appendChild(d);
-      }
+      if (p.vehicle) { const v = document.createElement("p"); v.textContent = "Gaari: " + p.vehicle; div.appendChild(v); }
+      if (p.rate) { const r = document.createElement("p"); r.textContent = "Rate: " + p.rate; div.appendChild(r); }
+      if (p.desc) { const d = document.createElement("p"); d.textContent = p.desc; div.appendChild(d); }
 
       const actions = document.createElement("div");
       actions.className = "actions";
@@ -457,46 +284,28 @@
       actions.appendChild(call);
 
       const wa = document.createElement("a");
-      wa.href = "https://wa.me/" + normPhone(p.phone);
+      wa.href = "https://wa.me/" + normPhone(p.phone).replace(/^\+/, "");
       wa.target = "_blank";
       wa.textContent = "WhatsApp";
       actions.appendChild(wa);
 
-      const edit = document.createElement("button");
-      edit.className = "small edit";
-      edit.textContent = "Edit";
-      edit.onclick = function () { startEdit(i); };
-      actions.appendChild(edit);
-
       const rep = document.createElement("button");
       rep.className = "small report";
       rep.textContent = "Report";
-      rep.onclick = function () { reportProfile(i); };
+      rep.onclick = () => reportProfile(p.id);
       actions.appendChild(rep);
 
       div.appendChild(actions);
-
-      const note = document.createElement("p");
-      note.style.fontSize = "12px";
-      note.style.color = "#888";
-      note.textContent = "Photo baad mein add hogi (server ke saath).";
-      div.appendChild(note);
-
       list.appendChild(div);
     });
   }
 
-  // Setup
-  fillSelect("type", categories, "");
-  fillSelect("city", cities, "");
-  fillSelect("filterType", categories, "Sab kaam");
-  fillSelect("filterCity", cities, "Sab shehar");
-  loadProfiles();
-  renderList();
-  document.getElementById("type").onchange = toggleDriverBox;
+  document.getElementById("saveBtn").onclick = addProfile;
   document.getElementById("filterType").onchange = renderList;
   document.getElementById("filterCity").onchange = renderList;
+
   toggleDriverBox();
+  loadProfiles();
 </script>
 
 </body>
