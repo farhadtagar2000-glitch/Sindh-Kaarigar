@@ -1,1 +1,359 @@
 
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sindh Kaarigar</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+  }
+  header {
+    background: #1f6f5c;
+    color: #fff;
+    padding: 16px;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 22px; }
+  header p { margin: 6px 0 0; font-size: 14px; opacity: 0.9; }
+  .container { max-width: 620px; margin: 0 auto; padding: 16px; }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 18px; color: #1f6f5c; }
+  label { display: block; margin: 10px 0 4px; font-weight: bold; font-size: 14px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  button {
+    background: #1f6f5c;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 15px;
+    width: 100%;
+    margin-top: 14px;
+    cursor: pointer;
+  }
+  button.small {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
+    margin-top: 6px;
+    background: #888;
+  }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters select { flex: 1; min-width: 140px; }
+  .profile {
+    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+  }
+  .profile:last-child { border-bottom: none; }
+  .profile h3 { margin: 0 0 4px; font-size: 16px; }
+  .profile p { margin: 3px 0; font-size: 14px; }
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+  .tag.unverified { background: #fde8c8; color: #8a5300; }
+  .tag.category { background: #e0f2ec; color: #1f6f5c; }
+  .tag.outstation { background: #e4e9fb; color: #2c3e9a; }
+  .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions a, .actions button.small {
+    text-decoration: none;
+    color: #fff;
+    background: #1f6f5c;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    width: auto;
+    margin-top: 0;
+  }
+  .actions button.small.report { background: #b03a2e; }
+  .empty { color: #777; font-size: 14px; text-align: center; padding: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sindh Kaarigar</h1>
+  <p>Hyderabad, Karachi aur Sindh ke kaarigar aur drivers</p>
+</header>
+
+<div class="container">
+
+  <!-- REGISTRATION -->
+  <div class="card">
+    <h2>Apni profile register karein</h2>
+
+    <label for="name">Naam</label>
+    <input type="text" id="name" placeholder="Apna naam likhein">
+
+    <label for="phone">Phone number</label>
+    <input type="tel" id="phone" placeholder="03XX-XXXXXXX">
+
+    <label for="type">Aap kya kaam karte hain?</label>
+    <select id="type"></select>
+
+    <label for="city">Shehar ya gaaon</label>
+    <select id="city"></select>
+
+    <label for="listingType">Kis qism ka kaam (sirf driver/gaari ke liye)</label>
+    <select id="listingType">
+      <option value="">Ye lagu nahi</option>
+      <option value="jaana">Sirf jaana</option>
+      <option value="pick">Sirf pick karna</option>
+      <option value="aana-jaana">Aana-jaana (return)</option>
+    </select>
+
+    <label for="vehicle">Gaari ka naam aur model (sirf driver/gaari ke liye)</label>
+    <input type="text" id="vehicle" placeholder="Jaise Toyota Corolla 2018">
+
+    <label for="rate">Rate (sirf driver/gaari ke liye)</label>
+    <input type="text" id="rate" placeholder="Jaise 15000 per day, ya 8000 jaana">
+
+    <label for="desc">Thodi si tafseel</label>
+    <textarea id="desc" placeholder="Apne kaam ke bare mein likhein"></textarea>
+
+    <button onclick="addProfile()">Register karein</button>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card">
+    <h2>Kaarigar dhoondhein</h2>
+    <div class="filters">
+      <select id="filterType"></select>
+      <select id="filterCity"></select>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div class="card">
+    <h2>Register shuda log</h2>
+    <div id="list"></div>
+  </div>
+
+</div>
+
+<script>
+  const categories = [
+    "Bijli wala (electrician)",
+    "Nal wala (plumber)",
+    "Mistri (ghar banane wala)",
+    "General labour (mazdoor, har tarah ka kaam)",
+    "Rang wala (painter)",
+    "Lakdi wala (carpenter)",
+    "AC wala",
+    "Printer aur computer wala",
+    "Maali (gardener)",
+    "Naali wala aur safai karne wala (cleaner)",
+    "Welder (welding wala)",
+    "Tile aur marble wala",
+    "Chowkidar aur security guard",
+    "Gaari chalane wala (driver)",
+    "Gaari mechanic (gaari banane wala bhi shamil)",
+    "Long route gaari (Outstation car)"
+  ];
+
+  const cities = [
+    "Hyderabad",
+    "Karachi",
+    "Sukkur",
+    "Sehwan",
+    "Khairpur",
+    "Larkana",
+    "Sindh ke baaqi shehar aur gaaon"
+  ];
+
+  const storageKey = "sindhKaarigarProfiles";
+  let profiles = [];
+
+  function fillSelect(id, items, allLabel) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    if (allLabel) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = allLabel;
+      sel.appendChild(opt);
+    }
+    items.forEach(function (item) {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      sel.appendChild(opt);
+    });
+  }
+
+  function loadProfiles() {
+    try {
+      profiles = JSON.parse(localStorage.getItem(storageKey)) || [];
+    } catch (e) {
+      profiles = [];
+    }
+  }
+
+  function saveProfiles() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(profiles));
+    } catch (e) {}
+  }
+
+  function addProfile() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const type = document.getElementById("type").value;
+    const city = document.getElementById("city").value;
+    const listingType = document.getElementById("listingType").value;
+    const vehicle = document.getElementById("vehicle").value.trim();
+    const rate = document.getElementById("rate").value.trim();
+    const desc = document.getElementById("desc").value.trim();
+
+    if (!name || !phone) {
+      alert("Naam aur phone number zaroori hain.");
+      return;
+    }
+
+    profiles.push({
+      name: name,
+      phone: phone,
+      type: type,
+      city: city,
+      listingType: listingType,
+      vehicle: vehicle,
+      rate: rate,
+      desc: desc,
+      verified: false
+    });
+    saveProfiles();
+
+    ["name", "phone", "vehicle", "rate", "desc"].forEach(function (id) {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("listingType").value = "";
+
+    renderList();
+    alert("Profile register ho gayi. Abhi ye 'Verified nahi' hai.");
+  }
+
+  function reportProfile(index) {
+    const reason = prompt("Report ki wajah likhein:");
+    if (reason && reason.trim()) {
+      profiles[index].reports = (profiles[index].reports || 0) + 1;
+      saveProfiles();
+      alert("Shukriya, report darj ho gayi.");
+      renderList();
+    }
+  }
+
+  function renderList() {
+    const filterType = document.getElementById("filterType").value;
+    const filterCity = document.getElementById("filterCity").value;
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    const shown = profiles
+      .map(function (p, i) { return { p: p, i: i }; })
+      .filter(function (x) {
+        return (!filterType || x.p.type === filterType) &&
+               (!filterCity || x.p.city === filterCity);
+      });
+
+    if (shown.length === 0) {
+      list.innerHTML = '<div class="empty">Abhi koi profile nahi mili.</div>';
+      return;
+    }
+
+    shown.forEach(function (x) {
+      const p = x.p;
+      const div = document.createElement("div");
+      div.className = "profile";
+
+      const h3 = document.createElement("h3");
+      h3.textContent = p.name;
+      div.appendChild(h3);
+
+      const tags = document.createElement("div");
+      tags.innerHTML =
+        (p.type ? '<span class="tag category">' + p.type + '</span> ' : '') +
+        (p.city ? '<span class="tag category">' + p.city + '</span> ' : '') +
+        (p.listingType ? '<span class="tag outstation">' + p.listingType + '</span> ' : '') +
+        '<span class="tag unverified">Verified nahi</span>';
+      div.appendChild(tags);
+
+      const info = document.createElement("p");
+      info.textContent = "Phone: " + p.phone;
+      div.appendChild(info);
+
+      if (p.vehicle) {
+        const v = document.createElement("p");
+        v.textContent = "Gaari: " + p.vehicle;
+        div.appendChild(v);
+      }
+      if (p.rate) {
+        const r = document.createElement("p");
+        r.textContent = "Rate: " + p.rate;
+        div.appendChild(r);
+      }
+      if (p.desc) {
+        const d = document.createElement("p");
+        d.textContent = p.desc;
+        div.appendChild(d);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const call = document.createElement("a");
+      call.href = "tel:" + p.phone.replace(/[^0-9+]/g, "");
+      call.textContent = "Call karein";
+      actions.appendChild(call);
+
+      const wa = document.createElement("a");
+      wa.href = "https://wa.me/" + p.phone.replace(/[^0-9]/g, "");
+      wa.target = "_blank";
+      wa.textContent = "WhatsApp";
+      actions.appendChild(wa);
+
+      const rep = document.createElement("button");
+      rep.className = "small report";
+      rep.textContent = "Report";
+      rep.onclick = function () { reportProfile(x.i); };
+      actions.appendChild(rep);
+
+      div.appendChild(actions);
+      list.appendChild(div);
+    });
+  }
+
+  // Setup
+  fillSelect("type", categories, "");
+  fillSelect("city", cities, "");
+  fillSelect("filterType", categories, "Sab kaam");
+  fillSelect("filterCity", cities, "Sab shehar");
+  loadProfiles();
+  renderList();
+  document.getElementById("filterType").onchange = renderList;
+  document.getElementById("filterCity").onchange = renderList;
+</script>
+
+</body>
+</html>
