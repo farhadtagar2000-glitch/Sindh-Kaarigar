@@ -20,9 +20,9 @@
   .checks label { font-weight: normal; margin: 0; }
   .checks input { width: auto; }
   button { background: #1f6f5c; color: #fff; border: none; padding: 12px; border-radius: 6px; width: 100%; font-size: 16px; margin-top: 14px; }
+  button:disabled { background: #999; }
   button.small { width: auto; padding: 6px 10px; font-size: 13px; margin-top: 0; }
   button.report { background: #b03a2e; }
-  button.edit { background: #2c3e9a; }
   .filters { display: flex; gap: 8px; flex-wrap: wrap; }
   .filters select { flex: 1; min-width: 140px; }
   .profile { border-bottom: 1px solid #eee; padding: 12px 0; }
@@ -79,7 +79,7 @@
     <label for="rate">Rate (sirf driver ke liye)</label>
     <input id="rate" placeholder="Jaise 15000 per day, ya 8000 jaana">
 
-    <label for="desc">Thodi si tafseel (driver ho to kahan se kahan tak likhein)</label>
+    <label for="desc">Thodi si tafseel</label>
     <textarea id="desc" placeholder="Apne kaam ke bare mein likhein"></textarea>
 
     <button id="saveBtn">Register karein</button>
@@ -92,11 +92,12 @@
       <select id="filterType"></select>
       <select id="filterCity"></select>
     </div>
+    <button id="searchBtn">Search karein</button>
   </div>
 
   <div class="card">
-    <h2>Register shuda log</h2>
-    <div id="list"></div>
+    <h2>Search ka natija / Register shuda log</h2>
+    <div id="list"><div class="empty">Upar category aur sheher chunkar Search karein.</div></div>
   </div>
 
 </div>
@@ -105,14 +106,14 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ===== Firebase config: yahan apni values (quotes ke andar) daalein =====
   const firebaseConfig = {
-    apiKey: "PASTE_APIKEY_YAHAN",
-    authDomain: "PASTE_AUTHDOMAIN_YAHAN",
-    projectId: "PASTE_PROJECTID_YAHAN",
-    storageBucket: "PASTE_STORAGEBUCKET_YAHAN",
-    messagingSenderId: "PASTE_SENDERID_YAHAN",
-    appId: "PASTE_APPID_YAHAN"
+    apiKey: "AIzaSyCelsoWmWerpPFvNpdpGnlNHHzFfSJBnz8",
+    authDomain: "sindh-kaarigar.firebaseapp.com",
+    projectId: "sindh-kaarigar",
+    storageBucket: "sindh-kaarigar.firebasestorage.app",
+    messagingSenderId: "543476068387",
+    appId: "1:543476068387:web:9c0bd7418a6da61376c196",
+    measurementId: "G-YH127P8GVL"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -122,9 +123,9 @@
     "Bijli (Electrician)", "Plumber", "Mistri (Ghar Banane Wala)", "Mazdoor (Har Tarah Ka Kaam)",
     "Painter (Rang Ka Kaam)", "Carpenter (Lakdi Ka Kaam)", "AC Technician", "Printer Aur Computer",
     "Maali (Gardener)", "Bhangi / Cleaner (Safai Wala)", "Welder (Welding)", "Tile Aur Marble",
-    "Chowkidar Aur Security Guard", "Mechanic", "Driver (Inside City Aur Outside City)"
+    "Chowkidar Aur Security Guard", "Mechanic", "Driver (Gaari Wala)"
   ];
-  const DRIVER_CATEGORY = "Driver (Inside City Aur Outside City)";
+  const DRIVER = "Driver (Gaari Wala)";
   const cities = [
     "Kashmore","Kandhkot","Shahdadkot","Jacobabad","Shikarpur","Ghotki","Khairpur Mirs","Pir Jo Goth",
     "Khairpur Nathan Shah","Sukkur","Larkana","Dadu","Sehwan","Jamshoro","Kotri","Hala","Tando Allahyar",
@@ -133,7 +134,7 @@
   ];
 
   let profiles = [];
-  let editingId = null;
+  let saving = false;
   const COLL = "profiles";
 
   function fillSelect(id, items, allLabel) {
@@ -158,12 +159,9 @@
 
   function normPhone(p) { return (p || "").replace(/[^0-9+]/g, ""); }
 
-  function isDriver() { return document.getElementById("type").value === DRIVER_CATEGORY; }
-
   function toggleDriverBox() {
-    const show = isDriver();
-    document.getElementById("driverBox").style.display = show ? "block" : "none";
-    document.getElementById("vehicle").parentElement; // no-op
+    const isDriver = document.getElementById("type").value === DRIVER;
+    document.getElementById("driverBox").style.display = isDriver ? "block" : "none";
   }
   document.getElementById("type").onchange = toggleDriverBox;
 
@@ -172,26 +170,9 @@
       const snap = await getDocs(collection(db, COLL));
       profiles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       profiles.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      renderList();
     } catch (e) {
-      document.getElementById("list").textContent = "Profiles load nahi hui: " + e.message;
+      document.getElementById("msg").textContent = "Profiles load nahi hui: " + e.message;
     }
-  }
-
-  function readForm() {
-    const type = document.getElementById("type").value;
-    const driver = type === DRIVER_CATEGORY;
-    return {
-      name: document.getElementById("name").value.trim(),
-      phone: document.getElementById("phone").value.trim(),
-      type,
-      city: document.getElementById("city").value,
-      insideCity: driver && document.getElementById("insideCity").checked,
-      outsideCity: driver && document.getElementById("outsideCity").checked,
-      vehicle: driver ? document.getElementById("vehicle").value.trim() : "",
-      rate: driver ? document.getElementById("rate").value.trim() : "",
-      desc: document.getElementById("desc").value.trim()
-    };
   }
 
   function clearForm() {
@@ -202,25 +183,49 @@
   }
 
   async function addProfile() {
+    if (saving) return;
     const msg = document.getElementById("msg");
-    const data = readForm();
+    const btn = document.getElementById("saveBtn");
+    msg.style.color = "#b03a2e";
+
+    const type = document.getElementById("type").value;
+    const driver = type === DRIVER;
+    const data = {
+      name: document.getElementById("name").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      type,
+      city: document.getElementById("city").value,
+      insideCity: driver && document.getElementById("insideCity").checked,
+      outsideCity: driver && document.getElementById("outsideCity").checked,
+      vehicle: driver ? document.getElementById("vehicle").value.trim() : "",
+      rate: driver ? document.getElementById("rate").value.trim() : "",
+      desc: document.getElementById("desc").value.trim()
+    };
+
     if (!data.name || !data.phone) { msg.textContent = "Naam aur phone number zaroori hain."; return; }
     if (!data.city) { msg.textContent = "Apna sheher chunna zaroori hai."; return; }
-    if (data.type === DRIVER_CATEGORY && !data.insideCity && !data.outsideCity) {
+    if (driver && !data.insideCity && !data.outsideCity) {
       msg.textContent = "Driver ke liye Inside City ya Outside City, kam se kam ek tick karein."; return;
     }
-    const dup = profiles.some(p => normPhone(p.phone) === normPhone(data.phone) && p.name.toLowerCase() === data.name.toLowerCase());
-    if (dup) { msg.textContent = "Ye profile pehle se register hai."; return; }
 
+    const dupPhone = profiles.some(p => normPhone(p.phone) === normPhone(data.phone));
+    if (dupPhone) { msg.textContent = "Is phone number se profile pehle se register hai."; return; }
+
+    saving = true;
+    btn.disabled = true;
+    btn.textContent = "Save ho rahi hai...";
     try {
       await addDoc(collection(db, COLL), { ...data, verified: false, reports: 0, createdAt: Date.now() });
       msg.style.color = "#1f6f5c";
       msg.textContent = "Profile register ho gayi. Abhi ye 'Verified nahi' hai.";
       clearForm();
-      loadProfiles();
+      await loadProfiles();
     } catch (e) {
-      msg.style.color = "#b03a2e";
       msg.textContent = "Error: " + e.message;
+    } finally {
+      saving = false;
+      btn.disabled = false;
+      btn.textContent = "Register karein";
     }
   }
 
@@ -230,11 +235,12 @@
     try {
       await updateDoc(doc(db, COLL, id), { reports: increment(1) });
       alert("Shukriya, report darj ho gayi.");
-      loadProfiles();
+      await loadProfiles();
+      searchNow();
     } catch (e) { alert("Error: " + e.message); }
   }
 
-  function renderList() {
+  function searchNow() {
     const fType = document.getElementById("filterType").value;
     const fCity = document.getElementById("filterCity").value;
     const list = document.getElementById("list");
@@ -242,10 +248,7 @@
 
     const items = profiles.filter(p => (!fType || p.type === fType) && (!fCity || p.city === fCity));
     if (!items.length) {
-      const e = document.createElement("div");
-      e.className = "empty";
-      e.textContent = "Abhi koi profile nahi mili.";
-      list.appendChild(e);
+      list.innerHTML = '<div class="empty">Is sheher aur category mein abhi koi profile nahi mili.</div>';
       return;
     }
 
@@ -259,7 +262,7 @@
 
       const tags = document.createElement("div");
       let tagHtml = '<span class="tag category">' + p.type + '</span> <span class="tag city">' + p.city + '</span> ';
-      if (p.type === DRIVER_CATEGORY) {
+      if (p.type === DRIVER) {
         if (p.insideCity) tagHtml += '<span class="tag inside">Inside City</span> ';
         if (p.outsideCity) tagHtml += '<span class="tag outside">Outside City</span> ';
       }
@@ -279,7 +282,7 @@
       actions.className = "actions";
 
       const call = document.createElement("a");
-      call.href = "tel:" + p.phone.replace(/[^0-9+]/g, "");
+      call.href = "tel:" + normPhone(p.phone);
       call.textContent = "Call karein";
       actions.appendChild(call);
 
@@ -301,12 +304,11 @@
   }
 
   document.getElementById("saveBtn").onclick = addProfile;
-  document.getElementById("filterType").onchange = renderList;
-  document.getElementById("filterCity").onchange = renderList;
+  document.getElementById("searchBtn").onclick = searchNow;
 
   toggleDriverBox();
   loadProfiles();
 </script>
- 
+
 </body>
 </html>
